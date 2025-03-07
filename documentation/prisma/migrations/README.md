@@ -42,8 +42,32 @@ npx prisma migrate deploy
 
 To rollback a migration:
 
-1. Manually revert the changes in your database
-2. Delete the corresponding migration folder from `prisma/migrations`
+1. **For Development Environment**:
+   ```bash
+   npx prisma migrate reset
+   ```
+   This will:
+   - Drop the database
+   - Recreate it
+   - Apply all migrations from scratch
+
+2. **For Production Environment**:
+   - Manually revert the changes in your database using SQL
+   - Delete the corresponding migration folder from `prisma/migrations`
+
+3. **Using Prisma Migrate**:
+   - Run the following command to create a new migration that reverts the changes:
+     ```bash
+     npx prisma migrate dev --name revert_<migration_name>
+     ```
+   - This will generate a new migration file with the necessary SQL to undo the changes
+
+Important Notes:
+- Always backup your database before reverting migrations
+- Test the rollback process in a development environment first
+- Be cautious when reverting migrations in production
+
+For more details, refer to the [Prisma Migrate Documentation](https://www.prisma.io/docs/orm/prisma-migrate).
 
 ## Best Practices
 
