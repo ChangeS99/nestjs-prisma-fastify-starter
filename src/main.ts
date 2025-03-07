@@ -6,16 +6,9 @@ import {
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  // Create Fastify instance with additional options
-  const fastifyAdapter = new FastifyAdapter({
-    logger: true,
-    // You can add more Fastify options here
-    // https://www.fastify.io/docs/latest/Reference/Server/#factory
-  });
-
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    fastifyAdapter,
+    new FastifyAdapter(),
   );
 
   // other config...
