@@ -4,7 +4,6 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module';
-import './datadog';
 
 async function bootstrap() {
   // Create Fastify instance with additional options
