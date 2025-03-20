@@ -7,15 +7,15 @@ export class LoginDto {
     /**
      * User email - must be a valid email format
      */
-    @IsEmail()
-    @IsNotEmpty()
+    @IsEmail({}, { message: 'Please provide a valid email address' })
+    @IsNotEmpty({ message: 'Email is required' })
     email: string;
 
     /**
      * User password - must not be empty
      */
-    @IsNotEmpty()
-    @IsString()
+    @IsNotEmpty({ message: 'Password is required' })
+    @IsString({ message: 'Password must be a string' })
     password: string;
 }
 
@@ -26,23 +26,23 @@ export class RegisterDto {
     /**
      * User email - must be a valid email format
      */
-    @IsEmail()
-    @IsNotEmpty()
+    @IsEmail({}, { message: 'Please provide a valid email address' })
+    @IsNotEmpty({ message: 'Email is required' })
     email: string;
 
     /**
      * User password - must be at least 6 characters long
      */
-    @IsNotEmpty()
-    @IsString()
-    @MinLength(6)
+    @IsNotEmpty({ message: 'Password is required' })
+    @IsString({ message: 'Password must be a string' })
+    @MinLength(6, { message: 'Password must be at least 6 characters long' })
     password: string;
 
     /**
      * User name - optional
      */
     @IsOptional()
-    @IsString()
+    @IsString({ message: 'Name must be a string' })
     name?: string;
 }
 
@@ -53,13 +53,13 @@ export class RefreshTokenDto {
     /**
      * User ID
      */
-    @IsNotEmpty()
+    @IsNotEmpty({ message: 'User ID is required' })
     userId: number;
 
     /**
      * Refresh token
      */
-    @IsNotEmpty()
-    @IsString()
+    @IsNotEmpty({ message: 'Refresh token is required' })
+    @IsString({ message: 'Refresh token must be a string' })
     refreshToken: string;
-} 
+}
