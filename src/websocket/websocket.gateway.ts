@@ -26,6 +26,9 @@ export class WebsocketGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(WebsocketGateway.name);
 
+  // Map to store user ID to socket ID mappings
+  private userSocketMap = new Map<number, string[]>();
+
   constructor(private readonly jwtService: JwtService) { }
 
   @WebSocketServer()
@@ -63,7 +66,18 @@ export class WebsocketGateway
         // Attach user data to the socket
         client['user'] = payload;
 
-        this.logger.log(`Client connected: ${client.id}, User: ${payload.sub}`);
+        // Store the user ID to socket ID mapping
+        const userId = payload.sub;
+        if (!this.userSocketMap.has(userId)) {
+          this.userSocketMap.set(userId, []);
+        }
+        // Use non-null assertion or optional chaining with nullish coalescing
+        const userSockets = this.userSocketMap.get(userId);
+        if (userSockets) {
+          userSockets.push(client.id);
+        }
+
+        this.logger.log(`Client connected: ${client.id}, User: ${userId}`);
       } catch (error) {
         this.disconnect(client, 'Invalid authentication token');
         return;
@@ -79,6 +93,24 @@ export class WebsocketGateway
    */
   handleDisconnect(client: AuthenticatedSocket) {
     this.logger.log(`Client disconnected: ${client.id}`);
+
+    // Remove the socket from the user socket map
+    if (client.user) {
+      const userId = client.user.sub;
+      const userSockets = this.userSocketMap.get(userId);
+
+      if (userSockets) {
+        const index = userSockets.indexOf(client.id);
+        if (index !== -1) {
+          userSockets.splice(index, 1);
+        }
+
+        // If no more sockets for this user, remove the user entry
+        if (userSockets.length === 0) {
+          this.userSocketMap.delete(userId);
+        }
+      }
+    }
   }
 
   /**
@@ -125,6 +157,36 @@ export class WebsocketGateway
    */
   sendToClient(clientId: string, event: string, data: any): void {
     this.server.to(clientId).emit(event, data);
+  }
+
+  /**
+   * Sends a message to a specific user (all their connected clients)
+   * @param userId The user ID
+   * @param event The event name
+   * @param data The data to send
+   * @returns Boolean indicating if the message was sent to any clients
+   */
+  sendToUser(userId: number, event: string, data: any): boolean {
+    const socketIds = this.userSocketMap.get(userId);
+
+    if (!socketIds || socketIds.length === 0) {
+      return false;
+    }
+
+    // Send to all connected clients of this user
+    socketIds.forEach(socketId => {
+      this.sendToClient(socketId, event, data);
+    });
+
+    return true;
+  }
+
+  /**
+   * Gets all connected users
+   * @returns Array of user IDs that are currently connected
+   */
+  getConnectedUsers(): number[] {
+    return Array.from(this.userSocketMap.keys());
   }
 
   /**
