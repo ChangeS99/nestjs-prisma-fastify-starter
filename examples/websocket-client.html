@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Client Example</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #messages {
+            height: 300px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        input, button {
+            padding: 8px;
+            margin-right: 5px;
+        }
+        .message {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .sent {
+            background-color: #e6f7ff;
+            text-align: right;
+        }
+        .received {
+            background-color: #f0f0f0;
+        }
+        .system {
+            background-color: #ffe6e6;
+            font-style: italic;
+        }
+        .controls {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .controls input {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Client Example</h1>
+    
+    <div class="controls">
+        <input type="text" id="tokenInput" placeholder="Enter your JWT token">
+        <button id="connectBtn">Connect</button>
+        <button id="disconnectBtn" disabled>Disconnect</button>
+    </div>
+    
+    <div id="messages"></div>
+    
+    <div class="controls">
+        <input type="text" id="messageInput" placeholder="Type a message..." disabled>
+        <button id="sendBtn" disabled>Send</button>
+    </div>
+    
+    <script>
+        let socket;
+        const messagesDiv = document.getElementById('messages');
+        const tokenInput = document.getElementById('tokenInput');
+        const messageInput = document.getElementById('messageInput');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        
+        // Add a message to the messages div
+        function addMessage(text, type = 'system') {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', type);
+            messageElement.textContent = text;
+            messagesDiv.appendChild(messageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        // Connect to the WebSocket server
+        connectBtn.addEventListener('click', () => {
+            const token = tokenInput.value.trim();
+            if (!token) {
+                addMessage('Please enter a JWT token');
+                return;
+            }
+            
+            try {
+                // Connect to the WebSocket server with the token
+                socket = io('http://localhost:3000', {
+                    auth: {
+                        token: token
+                    }
+                });
+                
+                // Connection events
+                socket.on('connect', () => {
+                    addMessage('Connected to server');
+                    tokenInput.disabled = true;
+                    messageInput.disabled = false;
+                    connectBtn.disabled = true;
+                    disconnectBtn.disabled = false;
+                    sendBtn.disabled = false;
+                });
+                
+                socket.on('disconnect', () => {
+                    addMessage('Disconnected from server');
+                    resetUI();
+                });
+                
+                socket.on('error', (error) => {
+                    addMessage(`Error: ${error.message}`);
+                    socket.disconnect();
+                    resetUI();
+                });
+                
+                // Message event
+                socket.on('message', (data) => {
+                    addMessage(`Received: ${JSON.stringify(data)}`, 'received');
+                });
+                
+                // Custom events can be added here
+                
+            } catch (error) {
+                addMessage(`Connection error: ${error.message}`);
+            }
+        });
+        
+        // Disconnect from the WebSocket server
+        disconnectBtn.addEventListener('click', () => {
+            if (socket) {
+                socket.disconnect();
+                addMessage('Manually disconnected');
+                resetUI();
+            }
+        });
+        
+        // Send a message to the server
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message && socket) {
+                const messageData = { content: message };
+                socket.emit('message', messageData);
+                addMessage(`Sent: ${message}`, 'sent');
+                messageInput.value = '';
+            }
+        }
+        
+        // Reset the UI to its initial state
+        function resetUI() {
+            tokenInput.disabled = false;
+            messageInput.disabled = true;
+            connectBtn.disabled = false;
+            disconnectBtn.disabled = true;
+            sendBtn.disabled = true;
+        }
+    </script>
+</body>
+</html>
