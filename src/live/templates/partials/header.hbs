@@ -1,0 +1,34 @@
+<header>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/live">NestJS Starter</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/live">Home</a>
+                    </li>
+                    {{#if user}}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/live/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/live/notifications">Notifications</a>
+                    </li>
+                    {{/if}}
+                </ul>
+                <div class="d-flex">
+                    {{#if user}}
+                    <span class="navbar-text me-3">Hello, {{user.name}}</span>
+                    <button class="btn btn-outline-danger" id="logout-btn">Logout</button>
+                    {{else}}
+                    <a href="/live/login" class="btn btn-outline-primary me-2">Login</a>
+                    <a href="/live/register" class="btn btn-outline-success">Register</a>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>

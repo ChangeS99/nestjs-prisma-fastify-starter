@@ -6,12 +6,37 @@ import {
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { join } from 'path';
+import fastifyView from '@fastify/view';
+import Handlebars from 'handlebars';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),
   );
+
+  // Register Handlebars template engine
+  const fastifyInstance = app.getHttpAdapter().getInstance();
+
+  // Use absolute path for templates
+  const templatesPath = join(process.cwd(), 'src', 'live', 'templates');
+  console.log('Templates path:', templatesPath);
+
+  // Register Handlebars view engine with Fastify
+  await fastifyInstance.register(fastifyView, {
+    engine: {
+      handlebars: Handlebars,
+    },
+    templates: templatesPath,
+    layout: 'layouts/simple.hbs',
+    includeViewExtension: false,
+  });
+
+  // Register Handlebars helpers
+  Handlebars.registerHelper('eq', function (a, b) {
+    return a === b;
+  });
 
   // Configure WebSocket adapter
   app.useWebSocketAdapter(new IoAdapter(app));

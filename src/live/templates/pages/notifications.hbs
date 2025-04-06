@@ -1,0 +1,79 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Your Notifications</h4>
+                <button class="btn btn-sm btn-outline-primary" id="mark-all-read">Mark All as Read</button>
+            </div>
+            <div class="card-body">
+                {{#if notifications.length}}
+                    <div class="list-group">
+                        {{#each notifications}}
+                            <div class="notification {{#unless read}}unread{{/unless}} {{type}}" data-id="{{id}}">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{message}}</h5>
+                                    <small>{{createdAt}}</small>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <span class="badge bg-{{#if (eq type 'info')}}info{{else if (eq type 'success')}}success{{else if (eq type 'alert')}}danger{{else}}secondary{{/if}}">
+                                        {{type}}
+                                    </span>
+                                    {{#unless read}}
+                                        <button class="btn btn-sm btn-outline-secondary mark-read" data-id="{{id}}">
+                                            Mark as Read
+                                        </button>
+                                    {{/unless}}
+                                </div>
+                            </div>
+                        {{/each}}
+                    </div>
+                {{else}}
+                    <div class="alert alert-info">
+                        You don't have any notifications yet.
+                    </div>
+                {{/if}}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Helper function to get the token
+    function getToken() {
+        return localStorage.getItem('access_token');
+    }
+
+    // Mark a single notification as read
+    document.querySelectorAll('.mark-read').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            const notificationId = e.target.dataset.id;
+            const token = getToken();
+            
+            try {
+                // In a real implementation, you would call an API endpoint to mark as read
+                // For now, we'll just update the UI
+                const notification = document.querySelector(`.notification[data-id="${notificationId}"]`);
+                notification.classList.remove('unread');
+                e.target.remove();
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        });
+    });
+
+    // Mark all notifications as read
+    document.getElementById('mark-all-read').addEventListener('click', async () => {
+        const token = getToken();
+        
+        try {
+            // In a real implementation, you would call an API endpoint to mark all as read
+            // For now, we'll just update the UI
+            document.querySelectorAll('.notification.unread').forEach(notification => {
+                notification.classList.remove('unread');
+                notification.querySelector('.mark-read')?.remove();
+            });
+        } catch (error) {
+            console.error('Error marking all notifications as read:', error);
+        }
+    });
+</script>
